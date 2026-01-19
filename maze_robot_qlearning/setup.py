@@ -29,6 +29,8 @@ setup(
             'maze_env = maze_robot_qlearning.maze_environment:main',
             'inspect_env = maze_robot_qlearning.inspect_env:inspect_environment',
             'train_deep_sarsa = maze_robot_qlearning.train_deep_sarsa:main',
+            'train_td7 = maze_robot_qlearning.train_td7:main',
+            'test_agent = maze_robot_qlearning.test_agent:main',
         ],
     },
 )
