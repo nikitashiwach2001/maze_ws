@@ -32,6 +32,8 @@ class TD7Trainer:
 
         # Wait for environment to initialize
         time.sleep(2.0)
+        self.warmup_steps = 3_000
+
 
         # Create TD7 agent - UPDATE THIS SECTION (lines 35-43)
         self.agent = TD7Agent(
@@ -79,7 +81,6 @@ class TD7Trainer:
         self.env.get_logger().info('='*70)
         self.env.get_logger().info('STARTING TD7 TRAINING')
         self.env.get_logger().info('='*70)
-        WARMUP_EPISODES = 300
 
         for episode in range(1, self.num_episodes + 1):
             episode_start_time = time.time()
@@ -96,25 +97,34 @@ class TD7Trainer:
 
             while not done:
                 # WARM START: Use random actions for first N episodes
-                if episode <= WARMUP_EPISODES:
-                    action = np.random.uniform([0.0, -1.0], [1.0, 1.0], size=2)
+                # if episode <= WARMUP_EPISODES:
+                #     action = np.random.uniform([0.0, -1.0], [1.0, 1.0], size=2)
+                # else:
+                #     # Select action
+                #     action = self.agent.select_action(state, training=True)
+
+                if self.total_steps < self.warmup_steps:
+                    action = np.random.uniform(
+                        low=[0.0, -1.0],
+                        high=[1.0, 1.0],
+                        size=2
+                    )
                 else:
-                    # Select action
                     action = self.agent.select_action(state, training=True)
 
                 # Execute action
                 next_state, reward, done, info = self.env.step(action)
+                self.total_steps += 1
 
                 # Store transition in replay buffer
                 self.agent.store_transition(state, action, reward, next_state, done)
 
                 # Update agent (only after collecting initial experiences)
-                self.total_steps += 1
-                if self.total_steps >= self.update_after:
+                if self.total_steps >= self.warmup_steps:
                     encoder_loss, critic_loss, actor_loss = self.agent.update()
                     episode_encoder_losses.append(encoder_loss)
                     episode_critic_losses.append(critic_loss)
-                    if actor_loss > 0:  # Only log when actor is updated
+                    if actor_loss is not None:
                         episode_actor_losses.append(actor_loss)
 
                 # Update for next iteration
@@ -264,9 +274,7 @@ def main():
             gamma=0.99,
             batch_size=256,
             buffer_capacity=100000,
-            save_interval=50,
-            update_after=500
-        )
+            save_interval=50)
 
         # Train
         trainer.train()

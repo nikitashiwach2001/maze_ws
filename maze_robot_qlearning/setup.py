@@ -31,6 +31,7 @@ setup(
             'train_deep_sarsa = maze_robot_qlearning.train_deep_sarsa:main',
             'train_td7 = maze_robot_qlearning.train_td7:main',
             'test_agent = maze_robot_qlearning.test_agent:main',
+            'test_td = maze_robot_qlearning.test_td:main',
         ],
     },
 )
